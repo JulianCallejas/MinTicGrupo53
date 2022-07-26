@@ -3,7 +3,6 @@ package sistema.empleadosGUI;
 
 import sistema.empleadosDAL.Conexion;
 import java.sql.*;
-import java.util.Set;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 import sistema.empleadosBL.EmpleadosBL;
@@ -169,13 +168,10 @@ public class frmEmpleados extends javax.swing.JFrame {
        EmpleadosBL oEmpleados = recuperarDatosGUI();
        String strSentenciaInsertar = String.format("INSERT INTO Empleados (IdEmpleado, Nombre, Correo) VALUES (NULL, '%s', '%s');", oEmpleados.getNombre(),oEmpleados.getCorreo());
        objConexion.ejecutarSentenciaSQL(strSentenciaInsertar);
-       
-        
-        
+       this.mostrarDatos();
     }//GEN-LAST:event_btnAgregarActionPerformed
+    
     public void mostrarDatos(){
-        
-        
         Conexion objConexion = new Conexion();
         while(model.getRowCount()>0){
             model.removeRow(0);
@@ -184,9 +180,9 @@ public class frmEmpleados extends javax.swing.JFrame {
             ResultSet resultado = objConexion.consultarRegistros("SELECT * FROM Empleados;");
             
             while (resultado.next()){
-                System.out.println(resultado.getString("IdEmpleado"));
-                System.out.println(resultado.getString("Nombre"));
-                System.out.println(resultado.getString("Correo"));
+//                System.out.println(resultado.getString("IdEmpleado"));
+//                System.out.println(resultado.getString("Nombre"));
+//                System.out.println(resultado.getString("Correo"));
                 
                 Object[] usuario ={resultado.getString("IdEmpleado"), resultado.getString("Nombre"), resultado.getString("Correo")};
                 model.addRow(usuario);
@@ -195,13 +191,16 @@ public class frmEmpleados extends javax.swing.JFrame {
         } catch (Exception e) {
             System.out.println("El error es:" + e);
         }
-        
-               
-        
     }
+    
+    
     private void btnEditarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditarActionPerformed
         // TODO add your handling code here:
-        
+       Conexion objConexion = new Conexion();
+       EmpleadosBL oEmpleados = recuperarDatosGUI();
+       String strSentenciaEditar = String.format("UPDATE Empleados SET Nombre = '%s', Correo = '%s' WHERE IdEmpleado = %d;", oEmpleados.getNombre(),oEmpleados.getCorreo(), oEmpleados.getId());
+       objConexion.ejecutarSentenciaSQL(strSentenciaEditar);
+       this.mostrarDatos();
     }//GEN-LAST:event_btnEditarActionPerformed
 
     private void tbEmpleadosMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tbEmpleadosMouseClicked
