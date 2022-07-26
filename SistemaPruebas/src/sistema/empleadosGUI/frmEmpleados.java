@@ -1,11 +1,11 @@
 
 package sistema.empleadosGUI;
 
-import java.awt.event.ActionListener;
 import java.sql.ResultSet;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
@@ -15,9 +15,10 @@ import sistema.empleadosDAL.Conexion;
 import sistema.empleadosBL.EmpleadosBL;
 
 public class frmEmpleados extends javax.swing.JFrame {
-    Map<Integer, EmpleadosBL> listaEmpleados = new HashMap<>();
-    Boolean actualizaCombo = false;
-    DefaultTableModel te;
+    Map<Integer, EmpleadosBL> listaEmpleados = new HashMap<>(); //Se crea diccionario de objetos empleado
+    Boolean actualizaCombo = false;   //Variable de control para no repetir el proceso de actualizar el comboBox al abrir la aplicacion
+    DefaultTableModel te;     //Se crea el modelo para la tabla
+    List<String> listaComboBuscar = new ArrayList<>();  //Se crea la lista para ordenar los datos del comboBox
 
     /**
      * Creates new form frmEmpleados
@@ -25,12 +26,13 @@ public class frmEmpleados extends javax.swing.JFrame {
     public frmEmpleados() {
         initComponents();
         //Editar tamaño de la primera columna de la tabla
+        //Se configura la tabla con la primera columna mas pequeña
         te = (DefaultTableModel)tbEmpleados.getModel();
         TableColumn c1 = tbEmpleados.getColumnModel().getColumn(0);
         c1.setPreferredWidth(35);
         c1.setMaxWidth(70);
         c1.setMinWidth(15);
-        //AGREGA CODIGO PARA ORDENAR POR COLUMNA
+        //Configura tabla para ordenar por columna
         TableRowSorter<TableModel> ordenarColumna = new TableRowSorter<TableModel>(te);
         tbEmpleados.setRowSorter(ordenarColumna);
         tbEmpleados.setAutoCreateRowSorter(true);
@@ -61,6 +63,9 @@ public class frmEmpleados extends javax.swing.JFrame {
         jLabel4 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
         comboBuscar = new javax.swing.JComboBox<>();
+        jMenuBar1 = new javax.swing.JMenuBar();
+        jMenu1 = new javax.swing.JMenu();
+        menuArchivoSalir = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setFocusTraversalPolicyProvider(true);
@@ -151,6 +156,20 @@ public class frmEmpleados extends javax.swing.JFrame {
             }
         });
 
+        jMenu1.setText("Archivo");
+
+        menuArchivoSalir.setText("Salir");
+        menuArchivoSalir.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                menuArchivoSalirActionPerformed(evt);
+            }
+        });
+        jMenu1.add(menuArchivoSalir);
+
+        jMenuBar1.add(jMenu1);
+
+        setJMenuBar(jMenuBar1);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -236,6 +255,9 @@ public class frmEmpleados extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnAgregarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAgregarActionPerformed
+        //Se verifica si se ingreso un codigo, si el codigo existe se debe cambiar
+        //si el codigo no existe permite crear con codigo ingresado por teclado
+        //si no se ingresa codigo, se usa el autonumerico de la base de datos
         try {
             Integer idem = null;
             EmpleadosBL empleado = new EmpleadosBL();
@@ -251,14 +273,6 @@ public class frmEmpleados extends javax.swing.JFrame {
                 if (!txtCorreo.getText().isEmpty()){
                     empleado.setNombre(txtNombre.getText());
                     empleado.setCorreo(txtCorreo.getText());
-
-    //                Conexion objConexion = new Conexion();
-    //                objConexion.ejecutarSentenciaSQL("INSERT INTO Empleados(IdEmpleado, Nombre, Correo)\n"
-    //                        + "VALUES ("+ idem + ",\n"
-    //                        + "'"+ empleado.getNombre() +"',\n"
-    //                        + "'"+ empleado.getCorreo() +"'\n"
-    //                        + ")");
-
                     empleado.agregarEmpleado();
                     actualizarComponentes();
                 }else{
@@ -276,10 +290,6 @@ public class frmEmpleados extends javax.swing.JFrame {
         int reg = tbEmpleados.rowAtPoint(evt.getPoint());
         Integer cod = Integer.parseInt(tbEmpleados.getValueAt(reg, 0).toString());
 
-//        txtId.setText(String.valueOf(tbEmpleados.getValueAt(reg, 0)));
-//        txtNombre.setText(String.valueOf(tbEmpleados.getValueAt(reg, 1)));
-//        txtCorreo.setText(String.valueOf(tbEmpleados.getValueAt(reg, 2)));
-        
         txtId.setText(String.valueOf(listaEmpleados.get(cod).getId()));
         txtNombre.setText(listaEmpleados.get(cod).getNombre());
         txtCorreo.setText(listaEmpleados.get(cod).getCorreo());
@@ -287,6 +297,10 @@ public class frmEmpleados extends javax.swing.JFrame {
     }//GEN-LAST:event_tbEmpleadosMouseClicked
 
     private void btnEditarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditarActionPerformed
+        //Se verifica si el id ingresado existe
+        //si existe el id, se verifican los campos txt con datos ingresados
+        //para los txt vacios se mantienen los datos anteriore, no lo borra
+        //para los txt con datos, se modifican en la base de datos y la tabla
         try {
             if (!txtId.getText().isEmpty()){
                 Integer idem = Integer.parseInt(txtId.getText());
@@ -297,12 +311,6 @@ public class frmEmpleados extends javax.swing.JFrame {
                     if (!txtCorreo.getText().isEmpty()) {
                         listaEmpleados.get(idem).setCorreo(txtCorreo.getText());
                     }
-
-    //                Conexion objConexion = new Conexion();
-    //                objConexion.ejecutarSentenciaSQL("UPDATE Empleados \n" +
-    //                                                "SET Nombre = '" + listaEmpleados.get(idem).getNombre() + " ', \n" +
-    //                                                "Correo = '" + listaEmpleados.get(idem).getCorreo() + "'\n" +
-    //                                                "WHERE IdEmpleado = " + listaEmpleados.get(idem).getId() + ";");
                     listaEmpleados.get(idem).editarEmpleado();
                     actualizarComponentes();
 
@@ -316,6 +324,8 @@ public class frmEmpleados extends javax.swing.JFrame {
     }//GEN-LAST:event_btnEditarActionPerformed
 
     private void btnBorrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBorrarActionPerformed
+        //Se verifica que el Id ingresado exista
+        //Si existe se solicita confirmacion por mensaje popup
         try {
             if (!txtId.getText().isEmpty()){
                 Integer idem = Integer.parseInt(txtId.getText());
@@ -325,7 +335,6 @@ public class frmEmpleados extends javax.swing.JFrame {
                         listaEmpleados.get(idem).eliminaEmpleado();
                         actualizarComponentes();
                     }
-
                 }else{
                     JOptionPane.showMessageDialog(null, "El Id no existe, ingrese un Id válido");
                 }
@@ -339,9 +348,10 @@ public class frmEmpleados extends javax.swing.JFrame {
     }//GEN-LAST:event_btnBorrarActionPerformed
 
     private void btnCancelarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCancelarActionPerformed
-        this.dispose();
-        System.exit(0);
-        
+        //Limpia los campos del formulario
+        txtId.setText(null);
+        txtNombre.setText(null);
+        txtCorreo.setText(null);
     }//GEN-LAST:event_btnCancelarActionPerformed
 
     private void comboBuscarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBuscarActionPerformed
@@ -357,8 +367,15 @@ public class frmEmpleados extends javax.swing.JFrame {
             }
         }
     }//GEN-LAST:event_comboBuscarActionPerformed
+
+    private void menuArchivoSalirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuArchivoSalirActionPerformed
+        // TODO add your handling code here:
+        this.dispose();
+        System.exit(0);
+    }//GEN-LAST:event_menuArchivoSalirActionPerformed
    
-    
+//El metodo cargarTbEmpleados no se utiliza, pues el codigo se introdujo 
+//en el metodo actualizarComponentes() para hacer solo un llamado a la base de datos
     public final void cargarTbEmpleados(){
         try {
 //        DefaultTableModel te = (DefaultTableModel)tbEmpleados.getModel();
@@ -394,7 +411,8 @@ public class frmEmpleados extends javax.swing.JFrame {
         }
         
     }
-    
+    //El metodo cargarComboBuscar no se utiliza, pues el codigo se introdujo 
+//en el metodo actualizarComponentes() para hacer solo un llamado a la base de datos
     public final void cargarComboBuscar(){
         try {
             Conexion objConexion = new Conexion();
@@ -409,10 +427,6 @@ public class frmEmpleados extends javax.swing.JFrame {
     }
     
     public final void actualizarComponentes(){
-//        actualizaCombo = true;
-//        cargarTbEmpleados();
-//        cargarComboBuscar();
-//        actualizaCombo = false;
         try {
             Conexion objConexion = new Conexion();
             ResultSet datos = objConexion.ejecutarConsultaSQL("SELECT *, (Nombre || '-' || IdEmpleado) AS NombreId  FROM Empleados");
@@ -420,6 +434,7 @@ public class frmEmpleados extends javax.swing.JFrame {
             te.setRowCount(0);
             listaEmpleados.clear();
             comboBuscar.removeAllItems();
+            listaComboBuscar.clear();
             while (datos.next()) {
                 EmpleadosBL empleado = new EmpleadosBL();
                 empleado.setId(datos.getInt(1));
@@ -427,11 +442,15 @@ public class frmEmpleados extends javax.swing.JFrame {
                 empleado.setCorreo(datos.getString(3));
                 listaEmpleados.put(empleado.getId(), empleado);
                 te.addRow(empleado.getDatosTabla());
-                comboBuscar.addItem(datos.getString(4));
+                listaComboBuscar.add(datos.getString(4));
             }
             tbEmpleados.setModel(te);
+            listaComboBuscar.sort(null);
+            for(String emp : listaComboBuscar){
+                comboBuscar.addItem(emp);
+            }
             actualizaCombo = false;
-        
+            
         } catch (Exception e) {
             System.out.println("Error " + e);
         }
@@ -486,7 +505,10 @@ public class frmEmpleados extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
+    private javax.swing.JMenu jMenu1;
+    private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JMenuItem menuArchivoSalir;
     private javax.swing.JTable tbEmpleados;
     private javax.swing.JTextField txtCorreo;
     private javax.swing.JTextField txtId;

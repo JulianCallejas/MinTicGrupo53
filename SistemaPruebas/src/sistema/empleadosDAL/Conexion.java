@@ -16,6 +16,7 @@ public class Conexion {
             System.out.println("Error de conexion " + e);
         }
     }
+    
     public int ejecutarSentenciaSQL(String strSenteciaSQL){
         try {
             PreparedStatement ps = con.prepareStatement(strSenteciaSQL);
@@ -41,6 +42,5 @@ public class Conexion {
                     
         }
     }
-    
-    
+   
 }
